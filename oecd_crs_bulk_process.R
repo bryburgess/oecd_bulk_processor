@@ -319,3 +319,160 @@ write_csv(crs_raw_full, "crs_raw_full.csv")
 write_csv(crs_raw_small, "crs_raw_small.csv")
 setwd("..")
 setwd("..")
+
+
+
+
+
+
+
+
+# New download format:  ---------------------------------------------------
+
+# Packages ----------------------------------------------------------------
+
+library(tidyverse)
+library(janitor)
+library(openxlsx)
+library(extrafont)
+library(treemap) 
+
+options(scipen = 999)
+
+`%notin%` <- Negate(`%in%`)
+
+setwd("~/Documents/AidData/Data2x r2/")
+
+# Read in Data ------------------------------------------------------------
+list.files()
+options(timeout = 120)
+
+setwd("~/Documents/AidData/Data2x r2/oecd_crs_raw")
+
+# # No longer relying on Excel, figured out the encoding issues finally
+# # deu <- readxl::read_excel("combo_germany_base_template.xlsx", 
+# #                           sheet = 2,
+# #                           guess_max = 60000)
+# 
+# tmp_dir <- tempdir()
+# tmp <- tempfile(tmpdir = tmp_dir)
+# 
+# # 2017 
+# download.file("https://stats.oecd.org/FileView2.aspx?IDFile=bf6e1a95-a4ac-4545-9e91-1a38c9b738de", 
+#               tmp, quiet = FALSE) 
+# outf <- unzip(tmp, list = T)$Name
+# unzip(tmp, outf, exdir = tmp_dir)
+# crs_17_raw <- read.delim(file.path(tmp_dir, outf), sep = "|", fileEncoding = "UTF-16") %>%
+#   janitor::clean_names() %>%
+#   filter(donor_code == 5)
+#   
+# # 2018
+# download.file("https://stats.oecd.org/FileView2.aspx?IDFile=ed94e89a-e81e-4718-ac69-2a51f5429657", 
+#               tmp, quiet = FALSE) 
+# outf <- unzip(tmp, list = T)$Name
+# unzip(tmp, outf, exdir = tmp_dir)
+# crs_18_raw <- read.delim(file.path(tmp_dir, outf), sep = "|", fileEncoding = "UTF-16") %>%
+#   janitor::clean_names() %>%
+#   filter(donor_code == 5)
+# 
+# # 2019 
+# download.file("https://stats.oecd.org/FileView2.aspx?IDFile=348f223c-7d11-43ad-ab95-b7c0ab537fdd", 
+#               tmp, quiet = FALSE) 
+# outf <- unzip(tmp, list = T)$Name
+# unzip(tmp, outf, exdir = tmp_dir)
+# crs_19_raw <- read.delim(file.path(tmp_dir, outf), sep = "|", fileEncoding = "UTF-16") %>%
+#   janitor::clean_names() %>%
+#   filter(donor_code == 5)
+#  
+# # 2020
+# download.file("https://stats.oecd.org/FileView2.aspx?IDFile=ac3a59f6-5acb-4747-9ef3-3c00e2ab3eb5", 
+#               tmp, quiet = FALSE) 
+# outf <- unzip(tmp, list = T)$Name
+# unzip(tmp, outf, exdir = tmp_dir)
+# crs_20_raw <- read.delim(file.path(tmp_dir, outf), sep = "|", fileEncoding = "UTF-16") %>%
+#   janitor::clean_names() %>%
+#   filter(donor_code == 5)
+# 
+# # 2021
+# download.file("https://stats.oecd.org/FileView2.aspx?IDFile=d85be660-7811-45c1-b807-810b42055259", 
+#               tmp, quiet = FALSE) 
+# outf <- unzip(tmp, list = T)$Name
+# unzip(tmp, outf, exdir = tmp_dir)
+# crs_21_raw <- read.delim(file.path(tmp_dir, outf), sep = "|", fileEncoding = "UTF-16") %>%
+#   janitor::clean_names() %>%
+#   filter(donor_code == 5)
+# 
+# # Write raw
+# setwd("~/Documents/AidData/Data2x r2/oecd_crs_raw")
+# 
+# write_csv(crs_17_raw, "deu_17_raw.csv")
+# write_csv(crs_18_raw, "deu_18_raw.csv")
+# write_csv(crs_19_raw, "deu_19_raw.csv")
+# write_csv(crs_20_raw, "deu_20_raw.csv")
+# write_csv(crs_21_raw, "deu_21_raw.csv")
+
+crs_17_raw <- read_csv("deu_17_raw.csv")
+crs_18_raw <- read_csv("deu_18_raw.csv")
+crs_19_raw <- read_csv("deu_19_raw.csv")
+crs_20_raw <- read_csv("deu_20_raw.csv")
+crs_21_raw <- read_csv("deu_21_raw.csv")
+
+# Fixing coltypes 
+# # Columns that need to be numeric:
+numcols <- c("Year", "DonorCode", "AgencyCode", "InitialReport", "RecipientCode",
+             "RegionCode", "IncomegroupCode", "FlowCode", "Bi_Multi", "Category",
+             "Finance_t", "USD_Commitment", "USD_Disbursement", "USD_Received",
+             "USD_Commitment_Defl", "USD_Disbursement_Defl", "USD_Received_Defl",
+             "USD_Adjustment", "USD_Adjustment_Defl", "USD_AmountUntied", 
+             "USD_AmountPartialTied", "USD_AmountTied", "USD_AmountUntied_Defl",
+             "USD_AmountPartialTied_Defl", "USD_Amounttied_Defl", "USD_IRTC",
+             "USD_Expert_Commitment", "USD_Expert_Extended", "USD_Expert_Credit",
+             "CurrencyCode", "Commitment_National", "Disbursement_National",
+             "GrantEquiv", "USD_GrantEquiv", "PurposeCode", "SectorCode", 
+             "ChannelCode", "ParentChannelCode", "Gender", "Environment", "PDGG",
+             "Trade", "RMNCH", "DRR", "Nutrition", "Disability", "FTC", "PBA",
+             "InvestmentProject", "AssocFinance", "Biodiversity",
+             "ClimateMitigation", "ClimateAdaptation", "Desertification", 
+             "TypeRepayment", "NumberRepayment", "interest1", "interest2", 
+             "USD_Interest", "USD_Outstanding", "USD_Arrears_Principal", 
+             "USD_Arrears_Interest", "BudgetIdent", "CapitalExpend", "PSIflag", 
+             "PSIAddType")
+chrcols <- c("DonorName", "AgencyName", "CRSID", "ProjectNumber", "RecipientName",
+             "RegionName", "IncomegroupName", "FlowName", "Aid_t", 
+             "ShortDescription", "ProjectTitle", "PurposeName", "SectorName",
+             "ChannelName", "ChannelReportedName", "Geography", "LongDescription",
+             "SDGfocus", "Interest1", "PSIAddAssess", "PSIAddDevObj")
+
+
+nums17 <- colnames(crs_17_raw) %in% numcols
+crs_17_raw[nums17] <- lapply(crs_17_raw[nums17], as.numeric)
+chrs17 <- colnames(crs_17_raw) %in% chrcols
+crs_17_raw[chrs17] <- lapply(crs_17_raw[chrs17], as.character)
+
+nums18 <- colnames(crs_18_raw) %in% numcols
+crs_18_raw[nums18] <- lapply(crs_18_raw[nums18], as.numeric)
+chrs18 <- colnames(crs_18_raw) %in% chrcols
+crs_18_raw[chrs18] <- lapply(crs_18_raw[chrs18], as.character)
+
+nums19 <- colnames(crs_19_raw) %in% numcols
+crs_19_raw[nums19] <- lapply(crs_19_raw[nums19], as.numeric)
+chrs19 <- colnames(crs_19_raw) %in% chrcols
+crs_19_raw[chrs19] <- lapply(crs_19_raw[chrs19], as.character)
+
+nums20 <- colnames(crs_20_raw) %in% numcols
+crs_20_raw[nums20] <- lapply(crs_20_raw[nums20], as.numeric)
+chrs20 <- colnames(crs_20_raw) %in% chrcols
+crs_20_raw[chrs20] <- lapply(crs_20_raw[chrs20], as.character)
+
+nums21 <- colnames(crs_21_raw) %in% numcols
+crs_21_raw[nums21] <- lapply(crs_21_raw[nums21], as.numeric)
+chrs21 <- colnames(crs_21_raw) %in% chrcols
+crs_21_raw[chrs21] <- lapply(crs_21_raw[chrs21], as.character)
+
+deu <- bind_rows(crs_17_raw, crs_18_raw, crs_19_raw, crs_20_raw,
+                 crs_21_raw)
+rm(crs_17_raw, crs_18_raw, crs_19_raw, crs_20_raw, crs_21_raw, 
+   chrs17, chrs18, chrs19, chrs20, chrs21, chrcols,
+   nums17, nums18, nums19, nums20, nums21, numcols
+)
+gc()
